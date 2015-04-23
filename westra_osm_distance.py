@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 '''
 Утиліта для полегшення імпорта данних
-Written by Andriy Danyleiko and <добав себе тут>
+Written by Andriy Danyleiko and Liudmyla Kislitsyna
 Send bugs to andrii.danyleiko@gmail.com
 '''
 
