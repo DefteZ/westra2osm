@@ -9,6 +9,27 @@ Send bugs to andrii.danyleiko@gmail.com
 import math
 import sys
 
+import overpy
+
+
+def get_pass_from_overpass(bbox):
+    '''
+    descriptions
+    example get_pass_from_overpass((42.79741601927622,76.61865234374999,43.24520272203359,77.81341552734375))
+    '''
+    _query_pattern = '''[out:json][timeout:25];
+(
+  node["mountain_pass"="yes"]({},{},{},{});
+);
+out body;
+>;
+out skel qt;'''
+    api = overpy.Overpass()
+    result = api.query(_query_pattern.format(*bbox))
+    for i in result.nodes:
+        print ('назва: {};'.format(i.tags['name']))
+
+
 def distance_between_points(lat1, lon1, lat2, lon2):
     '''
     функція для пошуку відстані між точками у градусах
