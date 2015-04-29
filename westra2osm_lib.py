@@ -14,11 +14,12 @@ import overpy
 
 def get_pass_from_overpass(lat1,lon1,lat2,lon2): # південна_широта, західна_довгота, північна_широта, східна_довгота
     '''
-    descriptions
-    example get_pass_from_overpass((42.79741601927622,76.61865234374999,43.24520272203359,77.81341552734375))
+    get pass from OSM database thru overpass API from bounding box.
+    Bbox formats:
+    bbox = left,bottom,right,top
+    bbox = min Longitude , min Latitude , max Longitude , max Latitude
     
-    >>> get_pass_from_overpass((0.00,0.00,45.00,90.00))
-    True
+    example get_pass_from_overpass((42.79741601927622,76.61865234374999,43.24520272203359,77.81341552734375))
     '''
     _query_pattern = '''[out:json][timeout:25];
 (
