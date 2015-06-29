@@ -1,6 +1,9 @@
 #!/bin/env python
 # -*- coding: utf-8 -*-
-import sys, argparse
+import sys, argparse, codecs
+reload(sys)
+sys.setdefaultencoding('utf-8')
+#another way sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 import lxml.html
 
@@ -22,17 +25,45 @@ def main():
     else:
         poly = tuple(poly)
     
-    print poly
     bbox = poly2bbox(poly)
     
     westra_kml_passes = get_pass_westra(*bbox)
+    osm_passes = get_pass_from_overpass(*bbox)
+    
+    d_passes = {}
+    
     for p in westra_kml_passes:
-        root = lxml.html.fromstring(p.description)
-        rows = root.xpath("table")[0].findall("tr")
-        ks = rows[2].getchildren()[1].text
-        if ks and (u'1А' in ks or u'1Б' in ks or u'н/к' in ks):
-            print p.name, ks
-
+        name = p.name.lstrip(u'пер. ')
+        if name in d_passes:
+            d_passes[name][0] = name
+        else:
+            d_passes[name] = [name, u'']
+    
+    for p in osm_passes:
+        name = p[u'name']
+        if name in d_passes:
+            d_passes[name][1] = name
+        else:
+            d_passes[name] = [u'', name]
+    if cli_args.file:
+        f = codecs.open(cli_args.file, "w", encoding="utf-8")
+    else:
+        f = sys.stdout
+    
+    #write header
+    f.write (u'''<!DOCTYPE HTML>
+<html>
+<title>OSM валідатор перевалів</title>
+<meta charset="utf-8">
+<meta name="keywords" content="Вестра, OSM, Openstreetmap, westra, kml"> 
+<body><table border>
+<tr><th>Перевал в каталогі "Вестри"</th><th>Перевал в ОСМ</th></tr>''')
+    for i in d_passes.values():
+        f.write(u'''        <tr><td>{0!s}</td><td>{1!s}</td></tr>\n'''.format(*i))
+    
+    #write footer
+    f.write('    </table>\n    </body>\n    </html>')
+    
 
 def createParser():
     '''create cli options'''
@@ -40,37 +71,10 @@ def createParser():
     parser = argparse.ArgumentParser(formatter_class=myFormater)
     parser.add_argument('-p', '--poly', help='Polygon of area that will be used for validation. Point should be splited by spaces. Format "lat1,lon1 lat2,lon2 ...".  Example "14.01,10.1 15,10.5 14.5,12.7"')
     #TODO
-    #output file
+    parser.add_argument('-f', '--file', help='File what html will be saved')
     #output file format
     #polyfile
     return parser
-
-
-def calculete_tiles():
-    raise NotImplementedError
-
-import math
-def deg2num(lat_deg, lon_deg, zoom):
-  lat_rad = math.radians(lat_deg)
-  n = 2.0 ** zoom
-  xtile = int((lon_deg + 180.0) / 360.0 * n)
-  ytile = int((1.0 - math.log(math.tan(lat_rad) + (1 / math.cos(lat_rad))) / math.pi) / 2.0 * n)
-  return (xtile, ytile)
-
-
-def get_pass_overpass():
-    raise NotImplementedError
-
-
-
-
-'''
-class Pass():
-    raise NotImplementedError
-    self.ks
-    self.name
-'''
-
 
 
 main()

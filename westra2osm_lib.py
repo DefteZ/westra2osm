@@ -14,7 +14,8 @@ import fastkml
 import overpy
 
 
-def get_pass_from_overpass(lat1,lon1,lat2,lon2): # південна_широта, західна_довгота, північна_широта, східна_довгота
+def get_pass_from_overpass(longitude_west, latitude_south, longitude_east, latitude_north): #Задаєм стандартний BBOX
+    # південна_широта, західна_довгота, північна_широта, східна_довгота
     '''
     get pass from OSM database thru overpass API from bounding box.
     Bbox formats:
@@ -31,9 +32,11 @@ out body;
 >;
 out skel qt;'''
     api = overpy.Overpass()
-    result = api.query(_query_pattern.format(lat1,lon1,lat2,lon2))
+    result = api.query(_query_pattern.format(latitude_south,longitude_west,latitude_north,longitude_east))
+    passes = []
     for i in result.nodes:
-        print ('назва: {};'.format(i.tags['name']))
+        passes.append(i.tags)
+    return passes
 
 
 def distance_between_points(lat1, lon1, lat2, lon2):
