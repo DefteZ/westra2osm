@@ -77,4 +77,21 @@ def createParser():
     return parser
 
 
+def points_polihon(f):
+    '''приймає файловий об’єкт '''
+    Points = [] #загальний список, який стане кортежем
+    points = [] #список координат для 1 точки
+    list_point = f.readlines()
+    for w in list_point:
+        if w.find('Point') >= 0:
+            x = w.find('=')
+            y = w.find('\n')
+            point = w[x + 1:y]
+            points.append(float(point))
+            if len(points) == 2:
+                Points.append(tuple(points))
+                points = []
+    return(tuple(Points))
+
+
 main()
