@@ -19,7 +19,7 @@ def main():
     global debug_mode
     debug_mode = cli_args.debug
     
-    if debug_mode: print '\nparsed arguments is:\n{0}\n'.format(cli_args)
+    if debug_mode: print '\nDEBUG: parsed arguments is:\n{0}\n'.format(cli_args)
     
     if cli_args.poly:
         poly = []
@@ -36,9 +36,11 @@ def main():
         print 'ERROR: please define polygon\n'
         sys.exit(1)
     
-    print poly
-    
     bbox = poly2bbox(poly)
+    
+    if debug_mode:
+        print '\nDEBUG: Parsed polygon is\n{0}\n'.format(','.join((str(x) for x in poly)))
+        print '\nDEBUG: Generated BBOX is\n{0}\n'.format(bbox)
     
     westra_kml_passes = get_pass_westra(*bbox)
     osm_passes = get_pass_from_overpass(*bbox)
@@ -46,7 +48,7 @@ def main():
     d_passes = {}
     
     for p in westra_kml_passes:
-        if p.name.startwith(u'вер. '):
+        if p.name.startswith(u'вер. '):
             continue
         name = p.name.lstrip(u'пер. ')
         if name in d_passes:
@@ -108,7 +110,7 @@ def parse_sas_polygon(f):
             point = w[x + 1:y]
             points.append(float(point))
             if len(points) == 2:
-                Points.append(tuple((points[1],points[0])))  # грязний хак, якщо перепишеться то буде зрозуміліше
+                Points.append(points)
                 points = []
     return(tuple(Points))
 

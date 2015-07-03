@@ -83,8 +83,8 @@ def point_inside_polygon(x,y,poly):
 
 def poly2bbox(poly):
     '''обчислюємо крайні точки полігона'''
-    lats = [point[1] for point in poly]
-    lons = [point[0] for point in poly]
+    lats = [point[0] for point in poly]
+    lons = [point[1] for point in poly]
     
     longitude_west = min(lons) #долгота левой границы 
     longitude_east = max(lons) #долгота правой границы
