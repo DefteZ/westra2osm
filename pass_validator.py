@@ -16,14 +16,27 @@ def main():
         parser.print_help()
         sys.exit(1)
     cli_args = parser.parse_args()
-    poly = []
-    for point in cli_args.poly.split():
-        coord = point.split(',')
-        assert len(coord) == 2
-        coord = tuple((float(coord[0]), float(coord[1])))
-        poly.append(coord)
+    global debug_mode
+    debug_mode = cli_args.debug
+    
+    if debug_mode: print '\nparsed arguments is:\n{0}\n'.format(cli_args)
+    
+    if cli_args.poly:
+        poly = []
+        for point in cli_args.poly.split():
+            coord = point.split(',')
+            assert len(coord) == 2
+            coord = tuple((float(coord[0]), float(coord[1])))
+            poly.append(coord)
+        else:
+            poly = tuple(poly)
+    elif cli_args.sas_polygon:
+        poly = parse_sas_polygon(cli_args.sas_polygon)
     else:
-        poly = tuple(poly)
+        print 'ERROR: please define polygon\n'
+        sys.exit(1)
+    
+    print poly
     
     bbox = poly2bbox(poly)
     
@@ -71,12 +84,33 @@ def createParser():
     '''create cli options'''
     myFormater = lambda prog: argparse.RawDescriptionHelpFormatter(prog,max_help_position=25,width=190)
     parser = argparse.ArgumentParser(formatter_class=myFormater)
-    parser.add_argument('-p', '--poly', help='Polygon of area that will be used for validation. Point should be splited by spaces. Format "lat1,lon1 lat2,lon2 ...".  Example "14.01,10.1 15,10.5 14.5,12.7"')
+    parser.add_argument('--debug', help='Turn on debug mode', action='store_true')
+    polygon_group = parser.add_mutually_exclusive_group()
+    polygon_group.add_argument('-p', '--poly', help='Polygon of area that will be used for validation. Point should be splited by spaces. Format "lat1,lon1 lat2,lon2 ...".  Example "14.01,10.1 15,10.5 14.5,12.7"')
+    polygon_group.add_argument('-s', '--sas-polygon', help='File with polygon in SASplanet format', type=file)
+    
     #TODO
     parser.add_argument('-f', '--file', help='File what html will be saved')
     #output file format
-    #polyfile
     return parser
+
+
+def parse_sas_polygon(f):
+    '''приймає файловий об’єкт 
+    переписать!'''
+    Points = [] #загальний список, який стане кортежем
+    points = [] #список координат для 1 точки
+    list_point = f.readlines()
+    for w in list_point:
+        if w.find('Point') >= 0:
+            x = w.find('=')
+            y = w.find('\n')
+            point = w[x + 1:y]
+            points.append(float(point))
+            if len(points) == 2:
+                Points.append(tuple((points[1],points[0])))  # грязний хак, якщо перепишеться то буде зрозуміліше
+                points = []
+    return(tuple(Points))
 
 
 main()
