@@ -26,7 +26,7 @@ def get_pass_from_overpass(longitude_west, latitude_south, longitude_east, latit
     '''
     _query_pattern = '''[out:json][timeout:25];
 (
-  node["mountain_pass"="yes"]({},{},{},{});
+  node["mountain_pass"="yes"]({0},{1},{2},{3});
 );
 out body;
 >;

@@ -5,7 +5,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 #another way sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
-import lxml.html
+#import lxml.html
 
 import westra2osm_lib
 from westra2osm_lib import *
@@ -33,6 +33,8 @@ def main():
     d_passes = {}
     
     for p in westra_kml_passes:
+        if p.name.startwith(u'вер. '):
+            continue
         name = p.name.lstrip(u'пер. ')
         if name in d_passes:
             d_passes[name][0] = name
