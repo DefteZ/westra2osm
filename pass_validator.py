@@ -78,8 +78,8 @@ def main():
                 d_passes[saddle.name] = s.human_names(), saddle.human_names()
                 westra_passes.remove(s)
                 break
-            else:
-                d_passes[saddle.name] = '', saddle.human_names()
+        else:
+            d_passes[saddle.name] = '', saddle.human_names()
     
     # додаєм перевали з вестри яких немає на осм.
     for s in westra_passes:
