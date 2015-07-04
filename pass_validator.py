@@ -5,7 +5,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 #another way sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
-#import lxml.html
+import lxml.html
 
 import westra2osm_lib
 from westra2osm_lib import *
@@ -45,23 +45,46 @@ def main():
     westra_kml_passes = get_pass_westra(*bbox)
     osm_passes = get_pass_from_overpass(*bbox)
     
-    d_passes = {}
-    
+    #parsing kml points to MountainPass objects
+    westra_passes = []
     for p in westra_kml_passes:
         if p.name.startswith(u'вер. '):
             continue
         name = p.name.lstrip(u'пер. ')
-        if name in d_passes:
-            d_passes[name][0] = name
-        else:
-            d_passes[name] = [name, u'']
+        saddle = MountainPass(name)
+        
+        #check alt_names
+        root = lxml.html.fromstring(p.description)
+        rows = root.xpath("table")[0].findall("tr")
+        alt_names_text = rows[1].getchildren()[1].text
+        if alt_names_text:
+            alt_names = [p.strip() for p in alt_names_text.split(',')]
+            saddle.alt_names = alt_names
+        westra_passes.append(saddle)
     
+    #recurcive searching
+    d_passes = {}
     for p in osm_passes:
         name = p[u'name']
-        if name in d_passes:
-            d_passes[name][1] = name
-        else:
-            d_passes[name] = [u'', name]
+        saddle = MountainPass(name)
+        if p.get(u'alt_name'):
+            alt_names = [name.strip() for name in  p[u'alt_name'].split(';')]
+            saddle.alt_names = alt_names
+        
+        for s in westra_passes:
+            for oname in saddle.names():
+                if s.has_name(oname):
+                    d_passes[saddle.name] = s.human_names(), saddle.human_names()
+                    westra_passes.remove(s)
+                    break
+            else:
+                d_passes[saddle.name] = u'', saddle.human_names() #якщо буде break то сюда не дійде
+    
+    # додаєм перевали з вестри яких немає на осм.
+    for s in westra_passes:
+        d_passes[s.name] = s.human_names(), u''
+    
+    # вибираєм куда писать
     if cli_args.file:
         f = codecs.open(cli_args.file, "w", encoding="utf-8")
     else:
@@ -75,8 +98,12 @@ def main():
 <meta name="keywords" content="Вестра, OSM, Openstreetmap, westra, kml"> 
 <body><table border>
 <tr><th>Перевал в каталогі "Вестри"</th><th>Перевал в ОСМ</th></tr>''')
-    for i in d_passes.values():
-        f.write(u'''        <tr><td>{0!s}</td><td>{1!s}</td></tr>\n'''.format(*i))
+    
+    dkeys = d_passes.keys()
+    dkeys.sort()
+    
+    for k in dkeys:
+        f.write(u'''        <tr><td>{0!s}</td><td>{1!s}</td></tr>\n'''.format(*d_passes[k]))
     
     #write footer
     f.write('    </table>\n    </body>\n    </html>')

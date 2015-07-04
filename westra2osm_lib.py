@@ -128,6 +128,40 @@ def get_pass_westra(longitude_west, latitude_south, longitude_east, latitude_nor
     return placemarks
 
 
+class MountainPass(object):
+    '''class that describe some of features to possible compare it'''
+    def __init__(self, name, elevation=None, alt_names=None, coordinates=None):
+        self.name = name
+        self.elevation = elevation
+        self.alt_names = alt_names
+        self.coordinates = coordinates
+    
+    def __repr__(self):
+        return '{0} instance with name "{1}"'.format(self.__class__, self.name.encode('utf8'))
+    
+    def has_name(self, item):
+        if item == self.name:
+            return True
+        elif self.alt_names and item in  self.alt_names:
+            return True
+        else:
+            return False
+    
+    __contains__ = has_name
+    
+    def human_names(self):
+        if self.alt_names:
+            return u'{main_name} ({alt_names})'.format(main_name=self.name, alt_names=', '.join(self.alt_names))
+        else:
+            return self.name
+    
+    def names(self):
+        if self.alt_names:
+            return [self.name] + self.alt_names
+        else:
+            return [self.name]
+
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod(verbose=True, report=True) #raise_on_error=True
