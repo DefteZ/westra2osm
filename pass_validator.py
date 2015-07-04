@@ -1,6 +1,7 @@
 #!/bin/env python
 # -*- coding: utf-8 -*-
 import sys, argparse, codecs
+import datetime
 reload(sys)
 sys.setdefaultencoding('utf-8')
 #another way sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
@@ -90,13 +91,17 @@ def main():
         f = sys.stdout
     
     #write header
+    now = datetime.datetime.now()
+    date_str = now.strftime("%Y-%m-%d %H:%M EET")
     f.write (u'''<!DOCTYPE HTML>
 <html>
 <title>OSM валідатор перевалів</title>
 <meta charset="utf-8">
 <meta name="keywords" content="Вестра, OSM, Openstreetmap, westra, kml"> 
-<body><table border>
-<tr><th>Перевал в каталогі "Вестри"</th><th>Перевал в ОСМ</th></tr>''')
+<body>
+<b>Останній раз оновлено:</b> {0}<br><br>
+<table border>
+<tr><th>Перевал в каталогі "Вестри"</th><th>Перевал в ОСМ</th></tr>'''.format(date_str))
     
     dkeys = d_passes.keys()
     dkeys.sort()
