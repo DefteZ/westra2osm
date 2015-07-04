@@ -151,7 +151,7 @@ class MountainPass(object):
     
     def human_names(self):
         if self.alt_names:
-            return u'{main_name} ({alt_names})'.format(main_name=self.name, alt_names=', '.join(self.alt_names))
+            return '{main_name} ({alt_names})'.format(main_name=self.name, alt_names=', '.join(self.alt_names))
         else:
             return self.name
     

@@ -1,5 +1,6 @@
 #!/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals, division, print_function
 import sys, argparse, codecs
 import datetime
 reload(sys)
@@ -20,7 +21,7 @@ def main():
     global debug_mode
     debug_mode = cli_args.debug
     
-    if debug_mode: print '\nDEBUG: parsed arguments is:\n{0}\n'.format(cli_args)
+    if debug_mode: print('\nDEBUG: parsed arguments is:\n{0}\n'.format(cli_args))
     
     if cli_args.poly:
         poly = []
@@ -34,14 +35,14 @@ def main():
     elif cli_args.sas_polygon:
         poly = parse_sas_polygon(cli_args.sas_polygon)
     else:
-        print 'ERROR: please define polygon\n'
+        print('ERROR: please define polygon\n')
         sys.exit(1)
     
     bbox = poly2bbox(poly)
     
     if debug_mode:
-        print '\nDEBUG: Parsed polygon is\n{0}\n'.format(','.join((str(x) for x in poly)))
-        print '\nDEBUG: Generated BBOX is\n{0}\n'.format(bbox)
+        print('\nDEBUG: Parsed polygon is\n{0}\n'.format(','.join((str(x) for x in poly))))
+        print('\nDEBUG: Generated BBOX is\n{0}\n'.format(bbox))
     
     westra_kml_passes = get_pass_westra(*bbox)
     osm_passes = get_pass_from_overpass(*bbox)
@@ -49,9 +50,9 @@ def main():
     #parsing kml points to MountainPass objects
     westra_passes = []
     for p in westra_kml_passes:
-        if p.name.startswith(u'вер. '):
+        if p.name.startswith('вер. '):
             continue
-        name = p.name.lstrip(u'пер. ')
+        name = p.name.lstrip('пер. ')
         saddle = MountainPass(name)
         
         #check alt_names
@@ -66,10 +67,10 @@ def main():
     #recurcive searching
     d_passes = {}
     for p in osm_passes:
-        name = p[u'name']
+        name = p['name']
         saddle = MountainPass(name)
-        if p.get(u'alt_name'):
-            alt_names = [name.strip() for name in  p[u'alt_name'].split(';')]
+        if p.get('alt_name'):
+            alt_names = [name.strip() for name in  p['alt_name'].split(';')]
             saddle.alt_names = alt_names
         
         for s in westra_passes:
@@ -78,11 +79,11 @@ def main():
                 westra_passes.remove(s)
                 break
             else:
-                d_passes[saddle.name] = u'', saddle.human_names()
+                d_passes[saddle.name] = '', saddle.human_names()
     
     # додаєм перевали з вестри яких немає на осм.
     for s in westra_passes:
-        d_passes[s.name] = s.human_names(), u''
+        d_passes[s.name] = s.human_names(), ''
     
     # вибираєм куда писать
     if cli_args.file:
@@ -93,7 +94,7 @@ def main():
     #write header
     now = datetime.datetime.now()
     date_str = now.strftime("%Y-%m-%d %H:%M EET")
-    f.write (u'''<!DOCTYPE HTML>
+    f.write ('''<!DOCTYPE HTML>
 <html>
 <title>OSM валідатор перевалів</title>
 <meta charset="utf-8">
@@ -107,7 +108,7 @@ def main():
     dkeys.sort()
     
     for k in dkeys:
-        f.write(u'''        <tr><td>{0!s}</td><td>{1!s}</td></tr>\n'''.format(*d_passes[k]))
+        f.write('''        <tr><td>{0!s}</td><td>{1!s}</td></tr>\n'''.format(*d_passes[k]))
     
     #write footer
     f.write('    </table>\n    </body>\n    </html>\n')
