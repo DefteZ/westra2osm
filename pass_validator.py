@@ -72,13 +72,12 @@ def main():
             saddle.alt_names = alt_names
         
         for s in westra_passes:
-            for oname in saddle.names():
-                if s.has_name(oname):
-                    d_passes[saddle.name] = s.human_names(), saddle.human_names()
-                    westra_passes.remove(s)
-                    break
+            if s.names() & saddle.names():
+                d_passes[saddle.name] = s.human_names(), saddle.human_names()
+                westra_passes.remove(s)
+                break
             else:
-                d_passes[saddle.name] = u'', saddle.human_names() #якщо буде break то сюда не дійде
+                d_passes[saddle.name] = u'', saddle.human_names()
     
     # додаєм перевали з вестри яких немає на осм.
     for s in westra_passes:
@@ -106,8 +105,8 @@ def main():
         f.write(u'''        <tr><td>{0!s}</td><td>{1!s}</td></tr>\n'''.format(*d_passes[k]))
     
     #write footer
-    f.write('    </table>\n    </body>\n    </html>')
-    
+    f.write('    </table>\n    </body>\n    </html>\n')
+
 
 def createParser():
     '''create cli options'''
@@ -124,22 +123,28 @@ def createParser():
     return parser
 
 
-def parse_sas_polygon(f):
-    '''приймає файловий об’єкт 
-    переписать!'''
-    Points = [] #загальний список, який стане кортежем
-    points = [] #список координат для 1 точки
-    list_point = f.readlines()
-    for w in list_point:
-        if w.find('Point') >= 0:
-            x = w.find('=')
-            y = w.find('\n')
-            point = w[x + 1:y]
-            points.append(float(point))
-            if len(points) == 2:
-                Points.append(points)
-                points = []
-    return(tuple(Points))
+def parse_sas_polygon(hlg_file):
+    '''Convert SASplanet .hlg files to polygon tuple
+    see http://www.sasgis.org/wikisasiya/ for details'''
+    polygon = []
+    coordinate = [None, None]
+    counter = 0
+    for line in hlg_file:
+        if line.startswith('PointL'):
+            if 'PointLat_' in line:
+                coordinate[0] = float(line.split('=')[1])
+                counter += 1
+            elif 'PointLon_' in line:
+                coordinate[1] = float(line.split('=')[1])
+                counter += 1
+            else:
+                raise AssertionError('Unknown syntax of hlg file')
+            
+            if counter == 2:
+                polygon.append(tuple(coordinate))
+                counter = 0
+    polygon.pop() # remove last point, that always duplicate first
+    return tuple(polygon)
 
 
 main()

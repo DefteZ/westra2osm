@@ -157,9 +157,9 @@ class MountainPass(object):
     
     def names(self):
         if self.alt_names:
-            return [self.name] + self.alt_names
+            return set([self.name] + self.alt_names)
         else:
-            return [self.name]
+            return set([self.name])
 
 
 if __name__ == "__main__":
