@@ -49,8 +49,10 @@ def main():
     
     #parsing kml points to MountainPass objects
     westra_passes = []
+    mountain_numb = 0
     for p in westra_kml_passes:
         if p.name.startswith('вер. '):
+            mountain_numb += 1
             continue
         name = p.name.lstrip('пер. ')
         saddle = MountainPass(name)
@@ -63,6 +65,12 @@ def main():
             alt_names = [p.strip() for p in alt_names_text.split(',')]
             saddle.alt_names = alt_names
         westra_passes.append(saddle)
+    
+    #for statistics and validation
+    all_westra = len(westra_passes)
+    all_osm = len(osm_passes)
+    osm_alone = 0
+    both_base = 0
     
     #recurcive searching
     d_passes = {}
@@ -77,13 +85,18 @@ def main():
             if s.names() & saddle.names():
                 d_passes[saddle.name] = s.human_names(), saddle.human_names()
                 westra_passes.remove(s)
+                both_base += 1
                 break
-            else:
-                d_passes[saddle.name] = '', saddle.human_names()
+        else:
+            d_passes[saddle.name] = '', saddle.human_names()
+            osm_alone += 1
     
     # додаєм перевали з вестри яких немає на осм.
+    westra_alone = len(westra_passes)
     for s in westra_passes:
         d_passes[s.name] = s.human_names(), ''
+    
+    assert len(westra_kml_passes) == both_base+westra_alone+mountain_numb, 'sometching goes wrong with Westra DB: {0} != {1}+{2}+{3}'.format(len(westra_kml_passes), both_base, westra_alone, mountain_numb)  #self-check
     
     # вибираєм куда писать
     if cli_args.file:
@@ -100,9 +113,14 @@ def main():
 <meta charset="utf-8">
 <meta name="keywords" content="Вестра, OSM, Openstreetmap, westra, kml"> 
 <body>
-<b>Останній раз оновлено:</b> {0}<br><br>
+<b>Останній раз оновлено:</b> {0}<br>
+Вього перевалів в таблиці: {all_pass}<br>
+\tіз них є тільки в Вестрі: {only_westra}<br>
+\tіз них є тільки в OSM: {only_osm}<br>
+\tє в обох базах: {both}<br>
+<br>
 <table border>
-<tr><th>Перевал в каталогі "Вестри"</th><th>Перевал в ОСМ</th></tr>'''.format(date_str))
+<tr><th>Перевал в каталогі "Вестри"</th><th>Перевал в ОСМ</th></tr>'''.format(date_str, all_pass=westra_alone+osm_alone+both_base, only_westra=westra_alone, only_osm=osm_alone, both=both_base))
     
     dkeys = d_passes.keys()
     dkeys.sort()
