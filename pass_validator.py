@@ -155,7 +155,8 @@ def createParser():
 
 def parse_sas_polygon(hlg_file):
     '''Convert SASplanet .hlg files to polygon tuple
-    see http://www.sasgis.org/wikisasiya/ for details'''
+    see http://www.sasgis.org/wikisasiya/ for details
+    hlg_file should be open file'''
     polygon = []
     coordinate = [None, None]
     counter = 0
