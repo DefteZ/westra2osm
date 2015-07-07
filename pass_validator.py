@@ -1,5 +1,10 @@
 #!/bin/env python
 # -*- coding: utf-8 -*-
+'''
+Utility for mountain pass validation
+Written by Andriy Danyleiko and Liudmyla Kislitsyna
+Send bugs to andrii.danyleiko@gmail.com or by github https://github.com/DefteZ/westra2osm/
+'''
 from __future__ import unicode_literals, division, print_function
 import sys, argparse, codecs
 import datetime
