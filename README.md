@@ -18,3 +18,6 @@ It is just python .py files. You need Python interpreter and dependencies.
 3. Push to your branch - `git push origin my_branch`
 4. Submit a [Pull Request](https://github.com/DefteZ/westra2osm/pulls) with your branch
 5. That's it!
+
+## Future plans
+See wiki
