@@ -170,5 +170,5 @@ def parse_sas_polygon(hlg_file):
     polygon.pop() # remove last point, that always duplicate first
     return tuple(polygon)
 
-
-main()
+if __name__ == "__main__":
+    main()
