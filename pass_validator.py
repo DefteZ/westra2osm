@@ -118,6 +118,7 @@ def main():
 \tіз них є тільки в Вестрі: {only_westra}<br>
 \tіз них є тільки в OSM: {only_osm}<br>
 \tє в обох базах: {both}<br>
+<a href='https://github.com/DefteZ/westra2osm/'>Дізнаться більше про проект</a><br>
 <br>
 <table border>
 <tr><th>Перевал в каталогі "Вестри"</th><th>Перевал в ОСМ</th></tr>'''.format(date_str, all_pass=westra_alone+osm_alone+both_base, only_westra=westra_alone, only_osm=osm_alone, both=both_base))
