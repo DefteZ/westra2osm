@@ -33,10 +33,19 @@ out body;
 out skel qt;'''
     api = overpy.Overpass()
     result = api.query(_query_pattern.format(latitude_south,longitude_west,latitude_north,longitude_east))
-    passes = []
-    for i in result.nodes:
-        passes.append(i.tags)
-    return passes
+    osm_passes = []
+    for p in result.nodes:
+        saddle = MountainPass(p.tags['name'], coordinates=(float(p.lat), float(p.lon)))
+        if p.tags.get('alt_name'):
+            alt_names = [name.strip() for name in  p.tags['alt_name'].split(';')]
+            saddle.alt_names = alt_names
+        if p.tags.get('ele'):
+            saddle.elevation = p.tags.get('ele')
+        if p.tags.get('rtsa_scale'):
+            saddle.scale = p.tags.get('rtsa_scale')
+        osm_passes.append(saddle)
+    
+    return osm_passes
 
 
 def distance_between_points(lat1, lon1, lat2, lon2):
@@ -62,7 +71,8 @@ def distance_between_points(lat1, lon1, lat2, lon2):
 
 def point_inside_polygon(x,y,poly):
     '''determine if a point is inside a given polygon or not
-    Polygon is a list of (x,y) pairs.'''
+    Polygon is a list of (x,y) pairs.
+    x may be latitude and y longtitude - it does not metter'''
     n = len(poly)
     inside =False
     
@@ -130,11 +140,12 @@ def get_pass_westra(longitude_west, latitude_south, longitude_east, latitude_nor
 
 class MountainPass(object):
     '''class that describe some of features to possible compare it'''
-    def __init__(self, name, elevation=None, alt_names=None, coordinates=None):
+    def __init__(self, name, elevation=None, alt_names=None, coordinates=None, scale=None):
         self.name = name
         self.elevation = elevation
         self.alt_names = alt_names
-        self.coordinates = coordinates
+        self.coordinates = coordinates #lat,lon
+        self.scale = scale
     
     def __repr__(self):
         return '{0} instance with name "{1}"'.format(self.__class__, self.name.encode('utf8'))

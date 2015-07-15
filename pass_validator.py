@@ -49,18 +49,20 @@ def main():
         print('\nDEBUG: Parsed polygon is\n{0}\n'.format(','.join((str(x) for x in poly))))
         print('\nDEBUG: Generated BBOX is\n{0}\n'.format(bbox))
     
-    westra_kml_passes = get_pass_westra(*bbox)
-    osm_passes = get_pass_from_overpass(*bbox)
+    westra_kml_passes = get_pass_westra(*bbox) #return kml point. FIXME?
+    osm_passes = get_pass_from_overpass(*bbox) #return MountainPass instanses
     
     #parsing kml points to MountainPass objects
     westra_passes = []
-    mountain_numb = 0
     for p in westra_kml_passes:
+        coordinates = tuple(reversed(p._geometry.geometry.coords[0][:2]))
         if p.name.startswith('вер. '):
-            mountain_numb += 1
             continue
+        elif not point_inside_polygon(*coordinates,poly=poly):
+            continue
+        
         name = p.name.lstrip('пер. ')
-        saddle = MountainPass(name)
+        saddle = MountainPass(name, coordinates=coordinates)
         
         #check alt_names
         root = lxml.html.fromstring(p.description)
@@ -71,6 +73,12 @@ def main():
             saddle.alt_names = alt_names
         westra_passes.append(saddle)
     
+    #filter osm passes with poly to MountainPass objects
+    for i, s in enumerate(osm_passes):
+        if not point_inside_polygon(*s.coordinates, poly=poly):
+            osm_passes.pop(i)
+    
+    
     #for statistics and validation
     all_westra = len(westra_passes)
     all_osm = len(osm_passes)
@@ -79,13 +87,7 @@ def main():
     
     #recurcive searching
     d_passes = {}
-    for p in osm_passes:
-        name = p['name']
-        saddle = MountainPass(name)
-        if p.get('alt_name'):
-            alt_names = [name.strip() for name in  p['alt_name'].split(';')]
-            saddle.alt_names = alt_names
-        
+    for saddle in osm_passes:
         for s in westra_passes:
             if s.names() & saddle.names():
                 d_passes[saddle.name] = s.human_names(), saddle.human_names()
@@ -101,7 +103,7 @@ def main():
     for s in westra_passes:
         d_passes[s.name] = s.human_names(), ''
     
-    assert len(westra_kml_passes) == both_base+westra_alone+mountain_numb, 'sometching goes wrong with Westra DB: {0} != {1}+{2}+{3}'.format(len(westra_kml_passes), both_base, westra_alone, mountain_numb)  #self-check
+    assert all_westra == both_base+westra_alone, 'sometching goes wrong with Westra DB: {0} != {1}+{2}'.format(all_westra, both_base, westra_alone)  #self-check
     
     # вибираєм куда писать
     if cli_args.file:
