@@ -74,10 +74,14 @@ def main():
         westra_passes.append(saddle)
     
     #filter osm passes with poly to MountainPass objects
+    out_of_poly = []
     for i, s in enumerate(osm_passes):
         if not point_inside_polygon(*s.coordinates, poly=poly):
-            osm_passes.pop(i)
-    
+            out_of_poly.append(i)
+    else:
+        for i in reversed(out_of_poly):
+            del osm_passes[i]
+        
     
     #for statistics and validation
     all_westra = len(westra_passes)
