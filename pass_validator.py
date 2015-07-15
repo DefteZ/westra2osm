@@ -148,7 +148,7 @@ def createParser():
     polygon_group.add_argument('-s', '--sas-polygon', help='File with polygon in SASplanet format', type=file)
     
     #TODO
-    parser.add_argument('-f', '--file', help='File what html will be saved')
+    parser.add_argument('-f', '--file', help='File what html will be saved. If omitted, will be print html to stdout.')
     #output file format
     return parser
 
