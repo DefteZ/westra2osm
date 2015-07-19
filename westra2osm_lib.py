@@ -9,6 +9,7 @@ Send bugs to andrii.danyleiko@gmail.com
 import math
 import sys
 import urllib
+import random
 
 import fastkml
 import overpy
@@ -166,7 +167,7 @@ class MountainPass(object):
         if name:
             self.name = name
         else:
-            self.name = 'Unnamed!'
+            self.name = '_Unnamed! {0}'.format(random.randint(1, 500))
         self.elevation = elevation
         self.alt_names = alt_names
         self.coordinates = coordinates #lat,lon
