@@ -84,19 +84,19 @@ def main():
     for osm_pass in osm_passes:
         for westra_pass in westra_passes:
             if westra_pass.names() & osm_pass.names():
-                d_passes[osm_pass.name] = '<a href={link}>{text}</a>'.format(link=westra_pass.netlink, text=westra_pass.human_names()), '<a href={link}>{text}</a>'.format(link=osm_pass.netlink, text=osm_pass.human_names())
+                d_passes[osm_pass.name] = westra_pass.human_names_with_url(), osm_pass.human_names_with_url()
                 westra_passes.remove(westra_pass)
                 both_base += 1
                 break
         else:
             if osm_pass.name not in d_passes:
-                d_passes[osm_pass.name] = '', '<a href={link}>{text}</a>'.format(link=osm_pass.netlink, text=osm_pass.human_names())
+                d_passes[osm_pass.name] = '', osm_pass.human_names_with_url()
                 osm_alone += 1
     
     # додаєм перевали з вестри яких немає на осм.
     for westra_pass in westra_passes:
         if westra_pass.name not in d_passes:
-            d_passes[westra_pass.name] = '<a href={link}>{text}</a>'.format(link=westra_pass.netlink, text=westra_pass.human_names()), ''
+            d_passes[westra_pass.name] = westra_pass.human_names_with_url(), ''
             westra_alone += 1
     
     assert all_westra == both_base+westra_alone, 'sometching goes wrong with Westra DB: {0} != {1}+{2}'.format(all_westra, both_base, westra_alone)  #self-check
