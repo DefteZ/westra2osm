@@ -163,7 +163,10 @@ def get_pass_westra(longitude_west, latitude_south, longitude_east, latitude_nor
 class MountainPass(object):
     '''class that describe some of features to possible compare it'''
     def __init__(self, name, elevation=None, alt_names=None, coordinates=None, scale=None, netlink=None):
-        self.name = name
+        if name:
+            self.name = name
+        else:
+            self.name = 'Unnamed!'
         self.elevation = elevation
         self.alt_names = alt_names
         self.coordinates = coordinates #lat,lon

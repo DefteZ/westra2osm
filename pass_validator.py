@@ -52,7 +52,6 @@ def main():
     osm_passes = get_pass_from_overpass(*bbox) #return MountainPass instanses
     
     #filter westra passes with poly
-    westra_passes 
     out_of_poly = []
     for i, s in enumerate(westra_passes):
         if not point_inside_polygon(*s.coordinates, poly=poly):
@@ -72,10 +71,11 @@ def main():
         
     
     #for statistics and validation
-    all_westra = len(westra_passes)
+    all_westra = len(westra_passes) - len(find_dup_in_names(westra_passes))
     all_osm = len(osm_passes)
     osm_alone = 0
     both_base = 0
+    westra_alone = 0
     
     #recurcive searching
     d_passes = {}
@@ -87,16 +87,18 @@ def main():
                 both_base += 1
                 break
         else:
-            d_passes[osm_pass.name] = '', '<a href={link}>{text}</a>'.format(link=osm_pass.netlink, text=osm_pass.human_names())
-            osm_alone += 1
+            if osm_pass.name not in d_passes:
+                d_passes[osm_pass.name] = '', '<a href={link}>{text}</a>'.format(link=osm_pass.netlink, text=osm_pass.human_names())
+                osm_alone += 1
     
     # додаєм перевали з вестри яких немає на осм.
-    westra_alone = len(westra_passes)
     for westra_pass in westra_passes:
-        d_passes[westra_pass.name] = '<a href={link}>{text}</a>'.format(link=westra_pass.netlink, text=westra_pass.human_names()), ''
+        if westra_pass.name not in d_passes:
+            d_passes[westra_pass.name] = '<a href={link}>{text}</a>'.format(link=westra_pass.netlink, text=westra_pass.human_names()), ''
+            westra_alone += 1
     
     assert all_westra == both_base+westra_alone, 'sometching goes wrong with Westra DB: {0} != {1}+{2}'.format(all_westra, both_base, westra_alone)  #self-check
-    #assert d_passes == westra_alone+osm_alone+both_base, 'Length of dictionary is not equivalent with sum of lengths. Some passes can be missed'
+    assert len(d_passes) == westra_alone+osm_alone+both_base, 'Length of dictionary is not equivalent with sum of lengths. Some passes can be missed. {0} !+ {1}+{2}+{3}'.format(len(d_passes), westra_alone, osm_alone, both_base)
     
     # вибираєм куда писать
     if cli_args.file:
@@ -171,6 +173,27 @@ def parse_sas_polygon(hlg_file):
                 counter = 0
     polygon.pop() # remove last point, that always duplicate first
     return tuple(polygon)
+
+
+def find_dup_in_names(passes):
+    '''Find MountainPass instanses with same names'''
+    lpasses = passes[:]
+    dubl = []
+    try:
+        while True:
+            c_dubl = []
+            cur = lpasses.pop()
+            c_names = cur.names()
+            for s in lpasses:
+                if s.names() & c_names:
+                    c_dubl.append(s)
+            else:
+                if c_dubl:
+                    c_dubl.append(cur)
+                    dubl.append(c_dubl)
+    except IndexError:
+        return dubl
+
 
 if __name__ == "__main__":
     main()
