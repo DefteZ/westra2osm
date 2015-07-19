@@ -91,15 +91,15 @@ def main():
     
     #recurcive searching
     d_passes = {}
-    for saddle in osm_passes:
-        for s in westra_passes:
-            if s.names() & saddle.names():
-                d_passes[saddle.name] = s.human_names(), saddle.human_names()
-                westra_passes.remove(s)
+    for osm_pass in osm_passes:
+        for westra_pass in westra_passes:
+            if westra_pass.names() & osm_pass.names():
+                d_passes[osm_pass.name] = westra_pass.human_names(), '<a href={link}>{text}</a>'.format(link=osm_pass.netlink, text=osm_pass.human_names())
+                westra_passes.remove(westra_pass)
                 both_base += 1
                 break
         else:
-            d_passes[saddle.name] = '', saddle.human_names()
+            d_passes[osm_pass.name] = '', '<a href={link}>{text}</a>'.format(link=osm_pass.netlink, text=osm_pass.human_names())
             osm_alone += 1
     
     # додаєм перевали з вестри яких немає на осм.

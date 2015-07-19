@@ -35,7 +35,7 @@ out skel qt;'''
     result = api.query(_query_pattern.format(latitude_south,longitude_west,latitude_north,longitude_east))
     osm_passes = []
     for p in result.nodes:
-        saddle = MountainPass(p.tags['name'], coordinates=(float(p.lat), float(p.lon)))
+        saddle = MountainPass(p.tags['name'], coordinates=(float(p.lat), float(p.lon)), netlink='http://www.openstreetmap.org/node/{0}'.format(p.id))
         if p.tags.get('alt_name'):
             alt_names = [name.strip() for name in  p.tags['alt_name'].split(';')]
             saddle.alt_names = alt_names
@@ -140,12 +140,13 @@ def get_pass_westra(longitude_west, latitude_south, longitude_east, latitude_nor
 
 class MountainPass(object):
     '''class that describe some of features to possible compare it'''
-    def __init__(self, name, elevation=None, alt_names=None, coordinates=None, scale=None):
+    def __init__(self, name, elevation=None, alt_names=None, coordinates=None, scale=None, netlink=None):
         self.name = name
         self.elevation = elevation
         self.alt_names = alt_names
         self.coordinates = coordinates #lat,lon
         self.scale = scale
+        self.netlink = netlink
     
     def __repr__(self):
         return '{0} instance with name "{1}"'.format(self.__class__, self.name.encode('utf8'))
