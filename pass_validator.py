@@ -68,15 +68,17 @@ def main():
     else:
         for i in reversed(out_of_poly):
             del osm_passes[i]
-        
+    
+    #check duplicates
+    westra_dups = find_dup_in_names(westra_passes)
+    osm_dups = find_dup_in_names(osm_passes)
     
     #for statistics and validation
-    all_westra = len(westra_passes) - len(find_dup_in_names(westra_passes))
-    all_osm = len(osm_passes)
+    all_westra = len(westra_passes) - len(westra_dups)
     osm_alone = 0
     both_base = 0
     westra_alone = 0
-    
+       
     #recurcive searching
     d_passes = {}
     for osm_pass in osm_passes:
@@ -100,11 +102,21 @@ def main():
     assert all_westra == both_base+westra_alone, 'sometching goes wrong with Westra DB: {0} != {1}+{2}'.format(all_westra, both_base, westra_alone)  #self-check
     assert len(d_passes) == westra_alone+osm_alone+both_base, 'Length of dictionary is not equivalent with sum of lengths. Some passes can be missed. {0} !+ {1}+{2}+{3}'.format(len(d_passes), westra_alone, osm_alone, both_base)
     
+    
     # вибираєм куда писать
     if cli_args.file:
         f = codecs.open(cli_args.file, "w", encoding="utf-8")
     else:
         f = sys.stdout
+    
+    #create text for duplicates
+    if osm_dups:
+        osm_dup_text = 'Деякі дублікацію в OSM базі, виправте це будь-ласка:<br>\n'
+        for opass in osm_dups:
+            osm_dup_text += ' і '.join(p.human_names_with_url() for p in opass) + '<br>\n'
+        osm_dup_text += '<br>\n'
+    else:
+        osm_dup_text = ''
     
     #write header
     now = datetime.datetime.now()
@@ -116,14 +128,16 @@ def main():
 <meta name="keywords" content="Вестра, OSM, Openstreetmap, westra, kml"> 
 <body>
 <b>Останній раз оновлено:</b> {0}<br>
+<a href='https://github.com/DefteZ/westra2osm/'>Дізнаться більше про проект</a><br>
 Вього перевалів в таблиці: {all_pass}<br>
 \tіз них є тільки в Вестрі: {only_westra}<br>
 \tіз них є тільки в OSM: {only_osm}<br>
 \tє в обох базах: {both}<br>
-<a href='https://github.com/DefteZ/westra2osm/'>Дізнаться більше про проект</a><br>
+<br>
+{odup}
 <br>
 <table border>
-<tr><th>Перевал в каталогі "Вестри"</th><th>Перевал в ОСМ</th></tr>'''.format(date_str, all_pass=westra_alone+osm_alone+both_base, only_westra=westra_alone, only_osm=osm_alone, both=both_base))
+<tr><th>Перевал в каталогі "Вестри"</th><th>Перевал в ОСМ</th></tr>'''.format(date_str, all_pass=westra_alone+osm_alone+both_base, only_westra=westra_alone, only_osm=osm_alone, both=both_base, odup=osm_dup_text))
     
     dkeys = d_passes.keys()
     dkeys.sort()

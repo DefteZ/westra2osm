@@ -193,6 +193,9 @@ class MountainPass(object):
         else:
             return self.name
     
+    def human_names_with_url(self):
+         return '<a href={link}>{text}</a>'.format(link=self.netlink, text=self.human_names())
+    
     def names(self):
         if self.alt_names:
             return set([self.name] + self.alt_names)
