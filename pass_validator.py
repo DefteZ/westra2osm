@@ -62,12 +62,16 @@ def main():
             continue
         
         name = p.name.lstrip('пер. ')
-        saddle = MountainPass(name, coordinates=coordinates)
+        
+        root = lxml.html.fromstring(p.description)
+        netlink = root.xpath("b")[0].findall("a")[0].values()[0]
+
+        saddle = MountainPass(name, coordinates=coordinates, netlink=netlink)
         
         #check alt_names
-        root = lxml.html.fromstring(p.description)
         rows = root.xpath("table")[0].findall("tr")
         alt_names_text = rows[1].getchildren()[1].text
+        #rows[3].getchildren()[1].text  - ele
         if alt_names_text:
             alt_names = [p.strip() for p in alt_names_text.split(',')]
             saddle.alt_names = alt_names
@@ -94,7 +98,7 @@ def main():
     for osm_pass in osm_passes:
         for westra_pass in westra_passes:
             if westra_pass.names() & osm_pass.names():
-                d_passes[osm_pass.name] = westra_pass.human_names(), '<a href={link}>{text}</a>'.format(link=osm_pass.netlink, text=osm_pass.human_names())
+                d_passes[osm_pass.name] = '<a href={link}>{text}</a>'.format(link=westra_pass.netlink, text=westra_pass.human_names()), '<a href={link}>{text}</a>'.format(link=osm_pass.netlink, text=osm_pass.human_names())
                 westra_passes.remove(westra_pass)
                 both_base += 1
                 break
@@ -104,8 +108,8 @@ def main():
     
     # додаєм перевали з вестри яких немає на осм.
     westra_alone = len(westra_passes)
-    for s in westra_passes:
-        d_passes[s.name] = s.human_names(), ''
+    for westra_pass in westra_passes:
+        d_passes[westra_pass.name] = '<a href={link}>{text}</a>'.format(link=westra_pass.netlink, text=westra_pass.human_names()), ''
     
     assert all_westra == both_base+westra_alone, 'sometching goes wrong with Westra DB: {0} != {1}+{2}'.format(all_westra, both_base, westra_alone)  #self-check
     
