@@ -12,8 +12,6 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 #another way sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
-import lxml.html
-
 import westra2osm_lib
 from westra2osm_lib import *
 
@@ -49,35 +47,21 @@ def main():
         print('\nDEBUG: Parsed polygon is\n{0}\n'.format(','.join((str(x) for x in poly))))
         print('\nDEBUG: Generated BBOX is\n{0}\n'.format(bbox))
     
-    westra_kml_passes = get_pass_westra(*bbox) #return kml point. FIXME?
+    #get passes from databases
+    westra_passes = get_pass_westra(*bbox) #return MountainPass instanses
     osm_passes = get_pass_from_overpass(*bbox) #return MountainPass instanses
     
-    #parsing kml points to MountainPass objects
-    westra_passes = []
-    for p in westra_kml_passes:
-        coordinates = tuple(reversed(p._geometry.geometry.coords[0][:2]))
-        if p.name.startswith('вер. '):
-            continue
-        elif not point_inside_polygon(*coordinates,poly=poly):
-            continue
-        
-        name = p.name.lstrip('пер. ')
-        
-        root = lxml.html.fromstring(p.description)
-        netlink = root.xpath("b")[0].findall("a")[0].values()[0]
-
-        saddle = MountainPass(name, coordinates=coordinates, netlink=netlink)
-        
-        #check alt_names
-        rows = root.xpath("table")[0].findall("tr")
-        alt_names_text = rows[1].getchildren()[1].text
-        #rows[3].getchildren()[1].text  - ele
-        if alt_names_text:
-            alt_names = [p.strip() for p in alt_names_text.split(',')]
-            saddle.alt_names = alt_names
-        westra_passes.append(saddle)
+    #filter westra passes with poly
+    westra_passes 
+    out_of_poly = []
+    for i, s in enumerate(westra_passes):
+        if not point_inside_polygon(*s.coordinates, poly=poly):
+            out_of_poly.append(i)
+    else:
+        for i in reversed(out_of_poly):
+            del westra_passes[i]
     
-    #filter osm passes with poly to MountainPass objects
+    #filter osm passes with poly
     out_of_poly = []
     for i, s in enumerate(osm_passes):
         if not point_inside_polygon(*s.coordinates, poly=poly):
@@ -112,6 +96,7 @@ def main():
         d_passes[westra_pass.name] = '<a href={link}>{text}</a>'.format(link=westra_pass.netlink, text=westra_pass.human_names()), ''
     
     assert all_westra == both_base+westra_alone, 'sometching goes wrong with Westra DB: {0} != {1}+{2}'.format(all_westra, both_base, westra_alone)  #self-check
+    #assert d_passes == westra_alone+osm_alone+both_base, 'Length of dictionary is not equivalent with sum of lengths. Some passes can be missed'
     
     # вибираєм куда писать
     if cli_args.file:

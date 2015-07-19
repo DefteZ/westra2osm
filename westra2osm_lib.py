@@ -12,7 +12,7 @@ import urllib
 
 import fastkml
 import overpy
-
+import lxml.html
 
 def get_pass_from_overpass(longitude_west, latitude_south, longitude_east, latitude_north): #Задаєм стандартний BBOX
     # південна_широта, західна_довгота, північна_широта, східна_довгота
@@ -135,7 +135,29 @@ def get_pass_westra(longitude_west, latitude_south, longitude_east, latitude_nor
     #req = urllib2.Request(url, data)
     #response = urllib2.urlopen(req)
     #the_page = response.read()
-    return placemarks
+    
+    westra_passes = []
+    for p in placemarks:
+        coordinates = tuple(reversed(p._geometry.geometry.coords[0][:2]))
+        if p.name.startswith('вер. '):
+            continue
+        
+        name = p.name.lstrip('пер. ')
+        
+        root = lxml.html.fromstring(p.description)
+        netlink = root.xpath("b")[0].findall("a")[0].values()[0]
+        
+        saddle = MountainPass(name, coordinates=coordinates, netlink=netlink)
+        
+        #check alt_names
+        rows = root.xpath("table")[0].findall("tr")
+        alt_names_text = rows[1].getchildren()[1].text
+        #rows[3].getchildren()[1].text  - ele
+        if alt_names_text:
+            alt_names = [p.strip() for p in alt_names_text.split(',')]
+            saddle.alt_names = alt_names
+        westra_passes.append(saddle)
+    return westra_passes
 
 
 class MountainPass(object):
