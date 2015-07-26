@@ -36,7 +36,7 @@ out skel qt;'''
     result = api.query(_query_pattern.format(latitude_south,longitude_west,latitude_north,longitude_east))
     osm_passes = []
     for p in result.nodes:
-        saddle = MountainPass(p.tags['name'], coordinates=(float(p.lat), float(p.lon)), netlink='http://www.openstreetmap.org/node/{0}'.format(p.id))
+        saddle = MountainPass(p.tags.get('name'), coordinates=(float(p.lat), float(p.lon)), netlink='http://www.openstreetmap.org/node/{0}'.format(p.id))
         if p.tags.get('alt_name'):
             alt_names = [name.strip() for name in  p.tags['alt_name'].split(';')]
             saddle.alt_names = alt_names
