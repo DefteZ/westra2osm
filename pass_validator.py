@@ -12,6 +12,8 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 #another way sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
+import pygpx, gpxpy.gpx
+
 import westra2osm_lib
 from westra2osm_lib import *
 
@@ -68,6 +70,21 @@ def main():
     else:
         for i in reversed(out_of_poly):
             del osm_passes[i]
+    
+    # create gpx
+    if cli_args.file:
+        gpx_filename = cli_args.file+'.gpx'
+        f = codecs.open(gpx_filename, "w", encoding="utf-8")
+        
+        gpx_f = gpxpy.gpx.GPX()
+        for wp in osm_passes:
+            descr = '{0} {1}m, {2}'.format(wp.human_names(), str(wp.elevation), wp.scale)
+            point = gpxpy.gpx.GPXWaypoint(*wp.coordinates, elevation=wp.elevation, name='O_'+wp.name, description=descr)  
+            gpx_f.waypoints.append(point)
+        else:
+            f.write(gpx_f.to_xml())
+            f.close()
+
     
     #check duplicates
     westra_dups = find_dup_in_names(westra_passes)
