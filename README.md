@@ -1,4 +1,4 @@
-# westra2osm - toolbox for Openstreetmap mountaine mappers
+# westra2osm - toolbox for Openstreetmap mountains mappers
 
 This tools help for mapping openstreetmap of mountains.
 These tools help to compare osm data with data from http://westra.ru/passes and so on.
