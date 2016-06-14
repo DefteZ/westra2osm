@@ -1,18 +1,14 @@
-#!/bin/env python
+#!/bin/env python3
 # -*- coding: utf-8 -*-
 '''
 Utility for mountain pass validation
 Written by Andriy Danyleiko and Liudmyla Kislitsyna
 Send bugs to andrii.danyleiko@gmail.com or by github https://github.com/DefteZ/westra2osm/
 '''
-from __future__ import unicode_literals, division, print_function
 import sys, argparse, codecs
 import datetime
-reload(sys)
-sys.setdefaultencoding('utf-8')
-#another way sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
-import pygpx, gpxpy.gpx
+#import pygpx, gpxpy.gpx
 
 import westra2osm_lib
 from westra2osm_lib import *
@@ -72,18 +68,18 @@ def main():
             del osm_passes[i]
     
     # create gpx
-    if cli_args.file:
-        gpx_filename = cli_args.file+'.gpx'
-        f = codecs.open(gpx_filename, "w", encoding="utf-8")
-        
-        gpx_f = gpxpy.gpx.GPX()
-        for wp in osm_passes:
-            descr = '{0} {1}m, {2}'.format(wp.human_names(), str(wp.elevation), wp.scale)
-            point = gpxpy.gpx.GPXWaypoint(*wp.coordinates, elevation=wp.elevation, name='O_'+wp.name, description=descr)  
-            gpx_f.waypoints.append(point)
-        else:
-            f.write(gpx_f.to_xml())
-            f.close()
+    #if cli_args.file:
+    #    gpx_filename = cli_args.file+'.gpx'
+    #    f = codecs.open(gpx_filename, "w", encoding="utf-8")
+    #    
+    #    gpx_f = gpxpy.gpx.GPX()
+    #    for wp in osm_passes:
+    #        descr = '{0} {1}m, {2}'.format(wp.human_names(), str(wp.elevation), wp.scale)
+    #        point = gpxpy.gpx.GPXWaypoint(*wp.coordinates, elevation=wp.elevation, name='O_'+wp.name, description=descr)  
+    #        gpx_f.waypoints.append(point)
+    #    else:
+    #        f.write(gpx_f.to_xml())
+    #        f.close()
 
     
     #check duplicates
@@ -91,7 +87,7 @@ def main():
     osm_dups = find_dup_in_names(osm_passes)
     
     #for statistics and validation
-    all_westra = len(westra_passes) - len(westra_dups)
+    all_westra = len(westra_passes) - len(westra_dups) # XXX: why this need?
     osm_alone = 0
     both_base = 0
     westra_alone = 0
@@ -157,7 +153,7 @@ def main():
 <tr><th>Перевал в каталогі "Вестри"</th><th>Перевал в ОСМ</th></tr>'''.format(date_str, all_pass=westra_alone+osm_alone+both_base, only_westra=westra_alone, only_osm=osm_alone, both=both_base, odup=osm_dup_text))
     
     dkeys = d_passes.keys()
-    dkeys.sort()
+    dkeys = sorted(dkeys)
     
     for k in dkeys:
         f.write('''        <tr><td>{0!s}</td><td>{1!s}</td></tr>\n'''.format(*d_passes[k]))
@@ -173,7 +169,7 @@ def createParser():
     parser.add_argument('--debug', help='Turn on debug mode', action='store_true')
     polygon_group = parser.add_mutually_exclusive_group()
     polygon_group.add_argument('-p', '--poly', help='Polygon of area that will be used for validation. Point should be splited by spaces. Format "lat1,lon1 lat2,lon2 ...".  Example "14.01,10.1 15,10.5 14.5,12.7"')
-    polygon_group.add_argument('-s', '--sas-polygon', help='File with polygon in SASplanet format', type=file)
+    polygon_group.add_argument('-s', '--sas-polygon', help='File with polygon in SASplanet format', type=argparse.FileType('r'))
     
     #TODO
     parser.add_argument('-f', '--file', help='File what html will be saved. If omitted, will be print html to stdout.')
@@ -207,7 +203,7 @@ def parse_sas_polygon(hlg_file):
 
 
 def find_dup_in_names(passes):
-    '''Find MountainPass instanses with same names'''
+    '''Find MountainPass instanses with same names to dedublicate this DB'''
     lpasses = passes[:]
     dubl = []
     try:

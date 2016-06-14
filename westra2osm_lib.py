@@ -8,7 +8,8 @@ Send bugs to andrii.danyleiko@gmail.com
 
 import math
 import sys
-import urllib
+import urllib.request
+
 import random
 
 import fastkml
@@ -105,19 +106,23 @@ def poly2bbox(poly):
     return round(longitude_west,6), round(latitude_south,6), round(longitude_east,6), round(latitude_north,6)
 
 
-def get_pass_westra(longitude_west, latitude_south, longitude_east, latitude_north):
+def get_pass_westra(longitude_west, latitude_south, longitude_east, latitude_north, filename=None):
     '''Функція для витягування геопривязаних перевалів із Вестри в kml xml формат.
     poly will be converted to bbox'''
-    url = 'http://westra.ru/passes/kml/passes.php'
-    values = {'BBOX' : '{0},{1},{2},{3}'.format(longitude_west, latitude_south, longitude_east, latitude_north)}
-    #data = urllib.urlencode(values)
-    r_url = url + '?BBOX=' + values['BBOX']
-    response = urllib.urlopen(r_url)
-    if response.getcode() != 200:
-        print 'westra.ru return not 200 HTTP code'
-        sys.exit(100)
     k = fastkml.kml.KML()
-    k.from_string(response.read())
+    if filename:
+        f = open(filename)
+        k.from_string(f.read())
+        f.close()
+    else:
+        url = 'http://westra.ru/passes/kml/passes.php'
+        values = {'BBOX' : '{0},{1},{2},{3}'.format(longitude_west, latitude_south, longitude_east, latitude_north)}
+        r_url = url + '?BBOX=' + values['BBOX']
+        response = urllib.request.urlopen(r_url)
+        if response.getcode() != 200:
+            print ('westra.ru return not 200 HTTP code')
+            sys.exit(100)
+        k.from_string(response.read()) #TODO unicode
     features = list(k.features())
     if len(features) == 1:
         features = features[0]
@@ -131,12 +136,7 @@ def get_pass_westra(longitude_west, latitude_south, longitude_east, latitude_nor
                 placemarks.append(p)
         else:
             raise NotImplementedError('There are not fastkml.kml.Folder object in list')
-    
-    
-    #req = urllib2.Request(url, data)
-    #response = urllib2.urlopen(req)
-    #the_page = response.read()
-    
+
     westra_passes = []
     for p in placemarks:
         coordinates = tuple(reversed(p._geometry.geometry.coords[0][:2]))
@@ -152,11 +152,11 @@ def get_pass_westra(longitude_west, latitude_south, longitude_east, latitude_nor
         
         #check alt_names
         rows = root.xpath("table")[0].findall("tr")
-        alt_names_text = rows[1].getchildren()[1].text
-        #rows[3].getchildren()[1].text  - ele
-        if alt_names_text:
-            alt_names = [p.strip() for p in alt_names_text.split(',')]
-            saddle.alt_names = alt_names
+        if rows[1].getchildren()[0].text == 'Другие названия':
+            alt_names_text = rows[1].getchildren()[1].text # rows[1].getchildren()[0].text
+            if alt_names_text:
+                alt_names = [p.strip() for p in alt_names_text.split(',')]
+                saddle.alt_names = alt_names
         westra_passes.append(saddle)
     return westra_passes
 
@@ -175,7 +175,7 @@ class MountainPass(object):
         self.netlink = netlink
     
     def __repr__(self):
-        return '{0} instance with name "{1}"'.format(self.__class__, self.name.encode('utf8'))
+        return '{0} instance with name "{1}"'.format(self.__class__, self.name)
     
     def has_name(self, item):
         if item == self.name:
